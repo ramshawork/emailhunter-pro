@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Hunter Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Clash+Display:wght@400;600;700&family=Instrument+Sans:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #0d0f14;
+      --surface: #141720;
+      --surface2: #1c2030;
+      --border: #252a38;
+      --border2: #2f3547;
+      --green: #34d399;
+      --green-dim: #1a6b4a;
+      --amber: #fbbf24;
+      --red: #f87171;
+      --blue: #60a5fa;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --muted2: #94a3b8;
+    }
+
+    html {
+      height: 100%;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Instrument Sans', sans-serif;
+      min-height: 100%;
+      line-height: 1.6;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .glow-orb {
+      position: fixed;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .glow-1 {
+      background: rgba(52, 211, 153, 0.06);
+      top: -200px;
+      left: -100px;
+    }
+
+    .glow-2 {
+      background: rgba(96, 165, 250, 0.04);
+      bottom: -200px;
+      right: -100px;
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 3rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .logo {
+      font-family: 'Clash Display', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 700;
+      letter-spacing: -1.5px;
+      line-height: 1;
+      color: var(--text);
+    }
+
+    .logo em {
+      color: var(--green);
+      font-style: normal;
+    }
+
+    .logo-tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    .header-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted2);
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1)
+      }
+
+      50% {
+        opacity: 0.5;
+        transform: scale(0.8)
+      }
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media(max-width:700px) {
+      .steps {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.75rem;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .card:hover {
+      border-color: var(--border2);
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(52, 211, 153, 0.3), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--green);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card-label::before {
+      content: attr(data-step);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      background: rgba(52, 211, 153, 0.1);
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      border-radius: 4px;
+      font-size: 0.65rem;
+      color: var(--green);
+    }
+
+    .upload-zone {
+      border: 2px dashed var(--border2);
+      border-radius: 12px;
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.25s;
+    }
+
+    .upload-zone:hover,
+    .upload-zone.drag-over {
+      border-color: var(--green);
+      background: rgba(52, 211, 153, 0.03);
+    }
+
+    .upload-zone input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .upload-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
+      display: block;
+    }
+
+    .upload-title {
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+      color: var(--text);
+    }
+
+    .upload-sub {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .file-info {
+      display: none;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin-top: 1rem;
+    }
+
+    .file-info.show {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .file-icon {
+      font-size: 1.5rem;
+    }
+
+    .file-details {
+      flex: 1;
+    }
+
+    .file-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .file-meta {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 0.15rem;
+    }
+
+    .stats-mini {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .stat-mini {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem;
+      text-align: center;
+    }
+
+    .stat-mini-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 1.4rem;
+      font-weight: 500;
+      color: var(--green);
+      display: block;
+      line-height: 1;
+    }
+
+    .stat-mini-label {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 0.2rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .setting-row:last-child {
+      border-bottom: none;
+    }
+
+    .setting-label {
+      font-size: 0.85rem;
+      color: var(--muted2);
+    }
+
+    .setting-label small {
+      display: block;
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 0.1rem;
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      height: 4px;
+      background: var(--border2);
+      border-radius: 2px;
+      outline: none;
+      width: 120px;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--green);
+      cursor: pointer;
+      box-shadow: 0 0 8px rgba(52, 211, 153, 0.5);
+    }
+
+    .range-val {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--green);
+      min-width: 35px;
+      text-align: right;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Instrument Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--green);
+      color: #000;
+      width: 100%;
+      justify-content: center;
+      font-size: 1rem;
+      padding: 1rem;
+    }
+
+    .btn-primary:hover {
+      background: #2ebd85;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(52, 211, 153, 0.2);
+    }
+
+    .btn-primary:disabled {
+      background: var(--border2);
+      color: var(--muted);
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .btn-danger {
+      background: rgba(248, 113, 113, 0.1);
+      color: var(--red);
+      border: 1px solid rgba(248, 113, 113, 0.3);
+      width: 100%;
+      justify-content: center;
+    }
+
+    .btn-danger:hover {
+      background: rgba(248, 113, 113, 0.2);
+    }
+
+    .btn-dl {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border2);
+      flex: 1;
+      justify-content: center;
+    }
+
+    .btn-dl:hover {
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    .progress-card {
+      display: none;
+    }
+
+    .progress-card.show {
+      display: block;
+    }
+
+    .progress-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+
+    .progress-title {
+      font-family: 'Clash Display', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .progress-pct {
+      font-family: 'DM Mono', monospace;
+      font-size: 1.5rem;
+      color: var(--green);
+    }
+
+    .progress-track {
+      background: var(--surface2);
+      border-radius: 100px;
+      height: 6px;
+      overflow: hidden;
+      margin-bottom: 1.25rem;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--green), #6ee7b7);
+      border-radius: 100px;
+      transition: width 0.5s ease;
+      width: 0%;
+      position: relative;
+    }
+
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 40px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4));
+      border-radius: 100px;
+      animation: shimmer 1.5s ease-in-out infinite;
+    }
+
+    @keyframes shimmer {
+
+      0%,
+      100% {
+        opacity: 0
+      }
+
+      50% {
+        opacity: 1
+      }
+    }
+
+    .progress-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    @media(max-width:600px) {
+      .progress-stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .pstat {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem;
+      text-align: center;
+    }
+
+    .pstat-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 1.3rem;
+      font-weight: 500;
+      color: var(--text);
+      display: block;
+    }
+
+    .pstat-num.green {
+      color: var(--green);
+    }
+
+    .pstat-label {
+      font-size: 0.68rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .log-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      height: 180px;
+      overflow-y: auto;
+      padding: 0.85rem 1rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      margin-bottom: 1rem;
+      scroll-behavior: smooth;
+    }
+
+    .log-line {
+      padding: 0.15rem 0;
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+    }
+
+    .log-time {
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .log-msg {
+      color: var(--muted2);
+    }
+
+    .log-line.success .log-msg {
+      color: var(--green);
+    }
+
+    .log-line.warn .log-msg {
+      color: var(--amber);
+    }
+
+    .log-line.error .log-msg {
+      color: var(--red);
+    }
+
+    .results-card {
+      display: none;
+    }
+
+    .results-card.show {
+      display: block;
+    }
+
+    .download-row {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    thead {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    th {
+      background: var(--surface2);
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted2);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 0.7rem 1rem;
+      border-bottom: 1px solid rgba(37, 42, 56, 0.6);
+      color: var(--text);
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.015);
+    }
+
+    .td-email {
+      color: var(--green);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+    }
+
+    .td-none {
+      color: var(--muted);
+      font-style: italic;
+      font-size: 0.78rem;
+    }
+
+    .td-title {
+      font-weight: 500;
+      max-width: 200px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="glow-orb glow-1"></div>
+  <div class="glow-orb glow-2"></div>
+
+  <div class="app">
+    <header>
+      <div class="logo-wrap">
+        <div class="logo">Email<em>Hunter</em> <span style="color:var(--muted);font-weight:400">Pro</span></div>
+        <div class="logo-tag">// CSV Upload → Auto Email Discovery</div>
+      </div>
+      <div class="header-badge">
+        <div class="badge-dot"></div>
+        Server Online
+      </div>
+    </header>
+
+    <div class="steps">
+      <!-- Upload -->
+      <div class="card">
+        <div class="card-label" data-step="1">Import Sheet</div>
+        <div class="upload-zone" id="uploadZone">
+          <input type="file" id="fileInput" accept=".csv,.xlsx,.xls">
+          <span class="upload-icon">📊</span>
+          <div class="upload-title">Drop your CSV or Excel file here</div>
+          <div class="upload-sub">.csv / .xlsx / .xls — any size</div>
+        </div>
+        <div class="file-info" id="fileInfo">
+          <div class="file-icon">📄</div>
+          <div class="file-details">
+            <div class="file-name" id="fileName">—</div>
+            <div class="file-meta" id="fileMeta">—</div>
+          </div>
+        </div>
+        <div class="stats-mini" id="statsRow" style="display:none">
+          <div class="stat-mini">
+            <span class="stat-mini-num" id="statTotal">—</span>
+            <div class="stat-mini-label">Total</div>
+          </div>
+          <div class="stat-mini">
+            <span class="stat-mini-num" id="statWebsite">—</span>
+            <div class="stat-mini-label">With URL</div>
+          </div>
+          <div class="stat-mini">
+            <span class="stat-mini-num" id="statNo">—</span>
+            <div class="stat-mini-label">No URL</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings -->
+      <div class="card">
+        <div class="card-label" data-step="2">Configuration</div>
+        <div class="setting-row">
+          <div class="setting-label">
+            Request Delay
+            <small>Lower = faster · Higher = safer (avoids blocks)</small>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.5rem">
+            <input type="range" id="delaySlider" min="0.2" max="3" step="0.1" value="0.8">
+            <span class="range-val" id="delayVal">0.8s</span>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">
+            Contact page fallback
+            <small>Scan /contact if homepage has no email</small>
+          </div>
+          <span style="font-size:0.8rem;color:var(--green)">✓ ON</span>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">
+            Spam domain filter
+            <small>Strips wixpress, google, schema.org, etc.</small>
+          </div>
+          <span style="font-size:0.8rem;color:var(--green)">✓ ON</span>
+        </div>
+        <div style="margin-top:1.5rem">
+          <button class="btn btn-primary" id="startBtn" disabled onclick="startJob()">
+            Start Discovery
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="card progress-card" id="progressCard">
+      <div class="progress-header">
+        <div class="progress-title">Processing...</div>
+        <div class="progress-pct" id="progPct">0%</div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progBar"></div>
+      </div>
+      <div class="progress-stats">
+        <div class="pstat">
+          <span class="pstat-num" id="psProcessed">0</span>
+          <div class="pstat-label">Processed</div>
+        </div>
+        <div class="pstat">
+          <span class="pstat-num green" id="psFound">0</span>
+          <div class="pstat-label">Emails Found</div>
+        </div>
+        <div class="pstat">
+          <span class="pstat-num" id="psTotal">0</span>
+          <div class="pstat-label">Total</div>
+        </div>
+        <div class="pstat">
+          <span class="pstat-num" id="psETA">—</span>
+          <div class="pstat-label">ETA</div>
+        </div>
+      </div>
+      <div class="log-box" id="logBox">
+        <div class="log-line"><span class="log-time">—</span><span class="log-msg">Waiting to start...</span></div>
+      </div>
+      <button class="btn btn-danger" id="cancelBtn" onclick="cancelJob()">Stop Job</button>
+    </div>
+
+    <!-- Results -->
+    <div class="card results-card" id="resultsCard">
+      <div class="card-label" data-step="✓">Results Ready</div>
+      <div class="download-row">
+        <a class="btn btn-dl" id="dlCsv" href="#">⬇ Download CSV</a>
+        <a class="btn btn-dl" id="dlXlsx" href="#">⬇ Download Excel</a>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Business Name</th>
+              <th>Phone</th>
+              <th>Emails Found</th>
+              <th>City</th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody">
+            <tr>
+              <td colspan="5" style="text-align:center;padding:2rem;color:var(--muted)">Results will appear here</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let currentJobId = null;
+    let pollingInterval = null;
+    let uploadedFilepath = null;
+    let allResults = [];
+
+    const fileInput = document.getElementById('fileInput');
+    const uploadZone = document.getElementById('uploadZone');
+
+    uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+    uploadZone.addEventListener('drop', e => {
+      e.preventDefault();
+      uploadZone.classList.remove('drag-over');
+      const f = e.dataTransfer.files[0];
+      if (f) { fileInput.files = e.dataTransfer.files; handleUpload(f); }
+    });
+    fileInput.addEventListener('change', () => { if (fileInput.files[0]) handleUpload(fileInput.files[0]); });
+
+    async function handleUpload(file) {
+      const fd = new FormData();
+      fd.append('file', file);
+      try {
+        uploadZone.querySelector('.upload-title').textContent = 'Uploading...';
+        const res = await fetch('/upload', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (data.error) { alert(data.error); return; }
+        uploadedFilepath = data.filepath;
+        document.getElementById('fileName').textContent = data.filename;
+        document.getElementById('fileMeta').textContent = `${data.total} rows · ${data.with_website} with website`;
+        document.getElementById('fileInfo').classList.add('show');
+        document.getElementById('statsRow').style.display = 'grid';
+        document.getElementById('statTotal').textContent = data.total;
+        document.getElementById('statWebsite').textContent = data.with_website;
+        document.getElementById('statNo').textContent = data.total - data.with_website;
+        document.getElementById('startBtn').disabled = false;
+        uploadZone.querySelector('.upload-title').textContent = 'Drop your CSV or Excel file here';
+      } catch (e) {
+        alert('Upload failed: ' + e.message);
+        uploadZone.querySelector('.upload-title').textContent = 'Drop your CSV or Excel file here';
+      }
+    }
+
+    const slider = document.getElementById('delaySlider');
+    const delayVal = document.getElementById('delayVal');
+    slider.addEventListener('input', () => delayVal.textContent = parseFloat(slider.value).toFixed(1) + 's');
+
+    async function startJob() {
+      if (!uploadedFilepath) return;
+      document.getElementById('startBtn').disabled = true;
+      document.getElementById('progressCard').classList.add('show');
+      document.getElementById('resultsCard').classList.remove('show');
+      document.getElementById('logBox').innerHTML = '';
+      allResults = [];
+      const res = await fetch('/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filepath: uploadedFilepath, delay: parseFloat(slider.value) })
+      });
+      const data = await res.json();
+      if (data.error) { alert(data.error); return; }
+      currentJobId = data.job_id;
+      pollingInterval = setInterval(pollStatus, 1500);
+    }
+
+    async function pollStatus() {
+      if (!currentJobId) return;
+      try {
+        const res = await fetch('/status/' + currentJobId);
+        const data = await res.json();
+        document.getElementById('progPct').textContent = data.progress + '%';
+        document.getElementById('progBar').style.width = data.progress + '%';
+        document.getElementById('psProcessed').textContent = data.processed;
+        document.getElementById('psFound').textContent = data.found;
+        document.getElementById('psTotal').textContent = data.total;
+        document.getElementById('psETA').textContent = data.eta || '—';
+        const logBox = document.getElementById('logBox');
+        logBox.innerHTML = '';
+        (data.log || []).forEach(l => {
+          const div = document.createElement('div');
+          div.className = 'log-line ' + (l.level || 'info');
+          div.innerHTML = `<span class="log-time">${l.time}</span><span class="log-msg">${l.msg}</span>`;
+          logBox.appendChild(div);
+        });
+        logBox.scrollTop = logBox.scrollHeight;
+        if (data.preview && data.preview.length) { allResults = data.preview; renderTable(allResults); }
+        if (data.status === 'done') {
+          clearInterval(pollingInterval);
+          document.getElementById('progressCard').classList.remove('show');
+          document.getElementById('resultsCard').classList.add('show');
+          document.getElementById('dlCsv').href = '/download/' + currentJobId + '/csv';
+          document.getElementById('dlXlsx').href = '/download/' + currentJobId + '/xlsx';
+          document.getElementById('startBtn').textContent = 'Start New Job';
+          document.getElementById('startBtn').disabled = false;
+        }
+      } catch (e) { console.error('Poll error:', e); }
+    }
+
+    async function cancelJob() {
+      if (!currentJobId) return;
+      document.getElementById('cancelBtn').textContent = 'Stopping...';
+      document.getElementById('cancelBtn').disabled = true;
+      await fetch('/cancel/' + currentJobId, { method: 'POST' });
+      const waitForCancel = setInterval(async () => {
+        try {
+          const res = await fetch('/status/' + currentJobId);
+          const data = await res.json();
+          if (data.status === 'cancelled' || data.status === 'done') {
+            clearInterval(waitForCancel);
+            clearInterval(pollingInterval);
+            document.getElementById('progressCard').classList.remove('show');
+            document.getElementById('resultsCard').classList.add('show');
+            document.getElementById('dlCsv').href = '/download/' + currentJobId + '/csv';
+            document.getElementById('dlXlsx').href = '/download/' + currentJobId + '/xlsx';
+            document.getElementById('startBtn').textContent = 'Start New Job';
+            document.getElementById('startBtn').disabled = false;
+            if (data.preview && data.preview.length) renderTable(data.preview);
+          }
+        } catch (e) { }
+      }, 1000);
+    }
+
+    function renderTable(rows) {
+      const tbody = document.getElementById('resultsBody');
+      if (!rows.length) return;
+      tbody.innerHTML = '';
+      rows.forEach((r, i) => {
+        const tr = document.createElement('tr');
+        const emails = r.emails || '';
+        tr.innerHTML = `
+          <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:0.75rem">${i + 1}</td>
+          <td class="td-title" title="${r.title}">${r.title || '—'}</td>
+          <td style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--muted2)">${r.phone || '—'}</td>
+          <td>${emails ? `<span class="td-email">${emails.replace(/\|/g, '<br>')}</span>` : '<span class="td-none">Not found</span>'}</td>
+          <td style="font-size:0.8rem;color:var(--muted2)">${r.city || r.countryCode || '—'}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+  </script>
+</body>
+
+</html>
